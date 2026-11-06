@@ -117,23 +117,40 @@
             
             <form id="rsvp-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Tên của bạn *</label>
-                    <input type="text" name="name" id="form-name" required class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700">
+                    <label for="form-name" class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Tên của bạn *</label>
+                    <input type="text" name="name" id="form-name" required maxlength="80" class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700">
                 </div>
                 <div>
-                    <label class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Bạn sẽ tham dự chứ? *</label>
+                    <label for="form-attend" class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Bạn sẽ tham dự chứ? *</label>
                     <select name="attend" id="form-attend" class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700">
                         <option value="Có, chắc chắn rồi!">Có, chắc chắn rồi!</option>
                         <option value="Xin lỗi, mình bận mất rồi">Xin lỗi, mình bận mất rồi</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Lời chúc gửi tới cô dâu chú rể</label>
-                    <textarea name="message" id="form-message" rows="3" class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700" placeholder="Chúc hai bạn trăm năm hạnh phúc..."></textarea>
+                    <label for="form-message" class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Lời chúc gửi tới cô dâu chú rể</label>
+                    <textarea name="message" id="form-message" rows="3" maxlength="2000" aria-describedby="message-visibility" class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700" placeholder="Chúc hai bạn trăm năm hạnh phúc..."></textarea>
+                    <p id="message-visibility" class="mt-2 text-xs text-stone-500">Tên và lời chúc của bạn sẽ được hiển thị trên thiệp.</p>
                 </div>
                 <button type="submit" id="submit-btn" class="w-full bg-rose-800 text-white py-3 rounded-lg text-sm uppercase tracking-wider font-medium hover:bg-rose-900 transition">Gửi Xác Nhận</button>
-                <p id="form-status" class="text-center text-sm text-emerald-600 hidden mt-2">Cảm ơn bạn! Lời chúc đã được lưu vào danh sách.</p>
+                <p id="form-status" role="status" aria-live="polite" class="text-center text-sm text-emerald-600 hidden mt-2"></p>
             </form>
+        </div>
+    </section>
+
+    <!-- 5. LỜI CHÚC TỪ KHÁCH MỜI -->
+    <section id="loi-chuc" aria-labelledby="wishes-heading" class="py-16 px-4 max-w-4xl mx-auto relative z-10">
+        <div class="text-center mb-10">
+            <p class="text-rose-800 text-2xl mb-4" aria-hidden="true">♡</p>
+            <h2 id="wishes-heading" class="font-script text-5xl text-rose-800 mb-3">Lời Chúc Yêu Thương</h2>
+            <p class="text-sm text-stone-500">Cảm ơn những lời chúc ấm áp dành cho chúng mình</p>
+            <p id="wishes-count" class="text-xs text-rose-800 mt-3 hidden"></p>
+        </div>
+        <p id="wishes-status" role="status" aria-live="polite" class="text-center text-sm text-stone-500 py-6">Đang tải những lời chúc yêu thương...</p>
+        <div id="wishes-list" class="grid md:grid-cols-2 gap-5" aria-busy="true"></div>
+        <div class="flex flex-wrap justify-center gap-3 mt-8">
+            <button id="wishes-more" type="button" class="hidden rounded-full bg-rose-800 text-white px-6 py-3 text-xs uppercase tracking-wider hover:bg-rose-900 transition">Xem thêm lời chúc</button>
+            <button id="wishes-refresh" type="button" disabled class="rounded-full border border-rose-800 text-rose-800 px-6 py-3 text-xs uppercase tracking-wider hover:bg-rose-50 transition disabled:opacity-50">Tải lại lời chúc</button>
         </div>
     </section>
 
@@ -246,36 +263,115 @@
         const submitBtn = document.getElementById('submit-btn');
         const statusMsg = document.getElementById('form-status');
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitBtn.disabled = true;
-            submitBtn.innerText = 'Đang gửi...';
+        // 6. Đọc lời chúc công khai từ Google Sheets, mới nhất trước.
+        const wishesList = document.getElementById('wishes-list');
+        const wishesStatus = document.getElementById('wishes-status');
+        const wishesCount = document.getElementById('wishes-count');
+        const wishesMore = document.getElementById('wishes-more');
+        const wishesRefresh = document.getElementById('wishes-refresh');
+        let wishes = [];
+        let visibleWishes = 6;
+        let wishesLoading = false;
+        let wishesReloadRequested = false;
 
-            const formData = new FormData(form);
+        function renderWishes() {
+            wishesList.replaceChildren();
+            wishes.slice(0, visibleWishes).forEach(wish => {
+                const card = document.createElement('article');
+                card.className = 'bg-white rounded-2xl border border-rose-100 p-6 shadow-sm';
+                const name = document.createElement('h3');
+                name.className = 'font-serif-title text-xl font-semibold text-rose-800 break-words';
+                name.textContent = wish.name;
+                const message = document.createElement('p');
+                message.className = 'mt-3 text-sm text-stone-600 leading-7 whitespace-pre-wrap break-words';
+                message.textContent = wish.message;
+                card.append(name, message);
+                wishesList.append(card);
+            });
+            wishesCount.textContent = wishes.length + ' lời chúc gửi tới chúng mình';
+            wishesCount.classList.toggle('hidden', wishes.length === 0);
+            wishesMore.classList.toggle('hidden', wishes.length <= visibleWishes);
+        }
 
-            if (SCRIPT_URL === 'DAN_LINK_WEB_APP_GOOGLE_SHEETS_VAO_DAY') {
-                // Chế độ chạy thử khi chưa gắn link Google Sheets
-                setTimeout(() => {
-                    statusMsg.classList.remove('hidden');
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = 'Gửi Xác Nhận';
-                    form.reset();
-                }, 600);
+        async function loadWishes() {
+            if (wishesLoading) {
+                wishesReloadRequested = true;
                 return;
             }
+            wishesLoading = true;
+            wishesRefresh.disabled = true;
+            wishesList.setAttribute('aria-busy', 'true');
+            wishesStatus.classList.remove('hidden');
+            wishesStatus.textContent = 'Đang tải những lời chúc yêu thương...';
+            try {
+                const url = new URL(SCRIPT_URL);
+                url.searchParams.set('action', 'wishes');
+                url.searchParams.set('_', Date.now().toString());
+                const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
+                if (!response.ok) throw new Error('Không tải được lời chúc');
+                const data = await response.json();
+                if (data.result !== 'success' || !Array.isArray(data.wishes)) {
+                    throw new Error('Phản hồi lời chúc không hợp lệ');
+                }
+                wishes = data.wishes.filter(wish =>
+                    wish && typeof wish.name === 'string' && typeof wish.message === 'string' && wish.message.trim()
+                );
+                renderWishes();
+                wishesStatus.textContent = 'Chưa có lời chúc nào. Hãy gửi lời chúc đầu tiên cho chúng mình nhé!';
+                wishesStatus.classList.toggle('hidden', wishes.length > 0);
+            } catch (error) {
+                wishesStatus.textContent = 'Chưa tải được lời chúc. Bạn bấm “Tải lại lời chúc” để thử lại nhé.';
+                console.error('Không tải được lời chúc:', error);
+            } finally {
+                wishesLoading = false;
+                wishesRefresh.disabled = false;
+                wishesList.setAttribute('aria-busy', 'false');
+                if (wishesReloadRequested) {
+                    wishesReloadRequested = false;
+                    loadWishes();
+                }
+            }
+        }
 
-            fetch(SCRIPT_URL, { method: 'POST', body: formData })
-                .then(() => {
-                    statusMsg.classList.remove('hidden');
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = 'Gửi Xác Nhận';
-                    form.reset();
-                })
-                .catch(err => {
-                    alert('Có lỗi xảy ra, vui lòng thử lại!');
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = 'Gửi Xác Nhận';
-                });
+        wishesMore.addEventListener('click', () => {
+            visibleWishes += 6;
+            renderWishes();
+        });
+        wishesRefresh.addEventListener('click', loadWishes);
+        loadWishes();
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (submitBtn.disabled) return;
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Đang gửi...';
+            statusMsg.classList.add('hidden');
+            const formData = new FormData(form);
+            formData.set('name', String(formData.get('name') || '').trim());
+            formData.set('message', String(formData.get('message') || '').trim());
+            try {
+                if (!formData.get('name')) throw new Error('Bạn điền tên trước khi gửi nhé.');
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Chưa gửi được xác nhận. Bạn thử lại nhé.');
+                const data = await response.json();
+                if (data.result !== 'success') throw new Error('Chưa lưu được xác nhận. Bạn thử lại nhé.');
+                statusMsg.textContent = 'Cảm ơn bạn! Xác nhận của bạn đã được lưu.';
+                statusMsg.classList.remove('text-rose-700');
+                statusMsg.classList.add('text-emerald-600');
+                form.reset();
+                if (guest) document.getElementById('form-name').value = guest;
+                loadWishes();
+            } catch (error) {
+                statusMsg.textContent = error instanceof TypeError
+                    ? 'Chưa kết nối được. Bạn kiểm tra mạng rồi thử lại nhé.'
+                    : error.message;
+                statusMsg.classList.remove('text-emerald-600');
+                statusMsg.classList.add('text-rose-700');
+            } finally {
+                statusMsg.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Gửi Xác Nhận';
+            }
         });
     </script>
 </body>
