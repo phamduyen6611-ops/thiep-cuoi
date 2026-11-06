@@ -124,9 +124,38 @@
         @keyframes rsvp-field-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes rsvp-status-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes rsvp-thanks { 50% { transform: scale(1.15) rotate(-8deg); } }
+
+        /* Hiện từng mục khi cuộn tới, chỉ chạy một lần. */
+        .countdown-tile { perspective: 400px; transition: transform 250ms ease, box-shadow 250ms ease; }
+        .countdown-number { display: inline-block; font-variant-numeric: tabular-nums; }
+        .gallery-item { position: relative; transition: transform 350ms ease, box-shadow 350ms ease; }
+        .gallery-item img { transition: transform 800ms cubic-bezier(.2,.7,.3,1); }
+        .gallery-item::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(110deg, transparent 35%, #ffffff26 50%, transparent 65%);
+            transform: translateX(-130%); transition: transform 850ms ease;
+        }
+        .event-card, .wish-card { transition: transform 300ms ease, box-shadow 300ms ease, border-color 300ms ease; }
+        .event-map-link::after { content: '↗'; display: inline-block; margin-left: 8px; transition: transform 250ms ease; }
+        .event-card:focus-within { border-color: #d6a3af; box-shadow: 0 12px 32px #88133712; }
+        .wishes-heart { width: fit-content; margin-left: auto; margin-right: auto; }
+        .wishes-heart.is-revealed { animation: wishes-heartbeat 1100ms ease-in-out 2; }
+        @keyframes wishes-heartbeat { 30%, 65% { transform: scale(1.14); } 45%, 100% { transform: scale(1); } }
         @media (hover: hover) {
             .rsvp-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px #88133726; }
+            .countdown-tile:hover { transform: translateY(-4px); box-shadow: 0 8px 20px #8813370d; }
+            .gallery-item:hover { transform: translateY(-4px); box-shadow: 0 14px 35px #704b3d24; }
+            .gallery-item:hover img { transform: scale(1.05); }
+            .gallery-item:hover::after { transform: translateX(130%); }
+            .event-card:hover, .wish-card:hover { transform: translateY(-4px); border-color: #d6a3af; box-shadow: 0 12px 32px #88133712; }
+            .event-map-link:hover::after { transform: translate(2px, -2px); }
         }
+        .reveal-ready {
+            transition: opacity 650ms ease, transform 650ms cubic-bezier(.2,.7,.3,1);
+            transition-delay: var(--reveal-delay, 0ms);
+        }
+        .reveal-ready:not(.is-revealed) { opacity: 0; transform: translateY(22px); }
+        .reveal-ready.is-revealed { opacity: 1; transform: translateY(0); }
         @media (max-width: 600px) {
             .cover-stage { max-width: 390px; }
             .cover-card {
@@ -151,6 +180,14 @@
             .rsvp-card.is-sent .rsvp-emblem, .rsvp-submit-spinner { animation: none; }
             .rsvp-card:focus-within .rsvp-emblem, .rsvp-field:focus-within > label,
             .rsvp-submit:hover:not(:disabled), .rsvp-submit:active:not(:disabled) { transform: none; }
+            .reveal-ready, .reveal-ready:not(.is-revealed) { opacity: 1; transform: none; transition: none; }
+            .countdown-tile, .gallery-item, .gallery-item img, .gallery-item::after,
+            .event-card, .wish-card, .event-map-link::after { transition: none; }
+            .countdown-tile:hover, .gallery-item:hover, .gallery-item:hover img,
+            .event-card:hover, .wish-card:hover, .event-map-link:hover::after { transform: none; }
+            .gallery-item::after { display: none; }
+            .wishes-heart.is-revealed { animation: none; }
+            html { scroll-behavior: auto !important; }
         }
     </style>
 </head>
@@ -200,71 +237,71 @@
     <section class="relative h-screen flex items-center justify-center text-center bg-cover bg-center" 
              style="background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80');">
         <div class="text-white px-4 max-w-2xl z-10">
-            <p class="uppercase tracking-[0.3em] text-sm mb-4 opacity-90">Save The Date</p>
-            <h1 class="font-script text-6xl md:text-8xl mb-6">Minh Hiền &amp; Hồng Duyên</h1>
+            <p data-reveal class="uppercase tracking-[0.3em] text-sm mb-4 opacity-90">Save The Date</p>
+            <h1 data-reveal data-delay="100" class="font-script text-6xl md:text-8xl mb-6">Minh Hiền &amp; Hồng Duyên</h1>
             
-            <div class="bg-white/15 backdrop-blur-md border border-white/30 rounded-lg px-6 py-4 mb-6 inline-block">
+            <div data-reveal data-delay="200" class="bg-white/15 backdrop-blur-md border border-white/30 rounded-lg px-6 py-4 mb-6 inline-block">
                 <p class="text-xs uppercase tracking-widest mb-1 opacity-80">Trân trọng kính mời</p>
                 <p id="guest-name" class="text-2xl font-serif-title font-semibold text-amber-200">Bạn và Gia đình</p>
             </div>
 
-            <p class="text-xl md:text-2xl font-serif-title tracking-widest">20 . 12 . 2026</p>
+            <p data-reveal data-delay="300" class="text-xl md:text-2xl font-serif-title tracking-widest">20 . 12 . 2026</p>
         </div>
     </section>
 
     <!-- 2. COUNTDOWN (ĐẾM NGƯỢC) -->
     <section class="py-16 bg-white text-center shadow-sm relative z-10">
-        <h2 class="font-serif-title text-3xl md:text-4xl mb-8 text-stone-700">Cùng đếm ngược tới ngày vui</h2>
+        <h2 data-reveal class="font-serif-title text-3xl md:text-4xl mb-8 text-stone-700">Cùng đếm ngược tới ngày vui</h2>
         <div id="countdown" class="flex justify-center gap-4 md:gap-8 text-stone-800">
-            <div class="bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
-                <span id="days" class="text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
+            <div data-reveal class="countdown-tile bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
+                <span id="days" class="countdown-number text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
                 <p class="text-xs uppercase mt-1 text-stone-500">Ngày</p>
             </div>
-            <div class="bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
-                <span id="hours" class="text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
+            <div data-reveal data-delay="70" class="countdown-tile bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
+                <span id="hours" class="countdown-number text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
                 <p class="text-xs uppercase mt-1 text-stone-500">Giờ</p>
             </div>
-            <div class="bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
-                <span id="minutes" class="text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
+            <div data-reveal data-delay="140" class="countdown-tile bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
+                <span id="minutes" class="countdown-number text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
                 <p class="text-xs uppercase mt-1 text-stone-500">Phút</p>
             </div>
-            <div class="bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
-                <span id="seconds" class="text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
+            <div data-reveal data-delay="210" class="countdown-tile bg-[#fdfbf7] border border-stone-200 w-20 md:w-24 py-4 rounded-lg">
+                <span id="seconds" class="countdown-number text-3xl md:text-4xl font-serif-title font-bold text-rose-800">00</span>
                 <p class="text-xs uppercase mt-1 text-stone-500">Giây</p>
             </div>
         </div>
     </section>
     <!-- 3. ALBUM ẢNH CƯỚI (PHOTO GALLERY) -->
     <section class="py-16 px-4 max-w-5xl mx-auto relative z-10 text-center">
-        <h2 class="font-script text-5xl text-rose-800 mb-2">Album Hình Kỷ Niệm</h2>
-        <p class="text-sm text-stone-500 mb-10">Những khoảnh khắc hạnh phúc của chúng mình</p>
+        <h2 data-reveal class="font-script text-5xl text-rose-800 mb-2">Album Hình Kỷ Niệm</h2>
+        <p data-reveal data-delay="80" class="text-sm text-stone-500 mb-10">Những khoảnh khắc hạnh phúc của chúng mình</p>
 
         <div class="grid grid-cols-2 gap-4 max-w-3xl mx-auto">
-            <div class="overflow-hidden rounded-xl shadow-sm aspect-[4/5] bg-stone-200">
-                <img src="images/1793954018285_286856952051646244_8906706671512364613_58283f127341df1df8ff37ba0d2b2c4c.jpg" alt="Ảnh cưới 1" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+            <div data-reveal class="gallery-item overflow-hidden rounded-xl shadow-sm aspect-[4/5] bg-stone-200">
+                <img src="images/1793954018285_286856952051646244_8906706671512364613_58283f127341df1df8ff37ba0d2b2c4c.jpg" alt="Ảnh cưới 1" loading="lazy" class="w-full h-full object-cover">
             </div>
-            <div class="overflow-hidden rounded-xl shadow-sm aspect-[4/5] bg-stone-200">
-                <img src="images/1793954048344_286856952051646244_8906706671512364613_e6c2d1ebfac9095c490d1f2cdf4cabb2.jpg" alt="Ảnh cưới 2" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+            <div data-reveal data-delay="120" class="gallery-item overflow-hidden rounded-xl shadow-sm aspect-[4/5] bg-stone-200">
+                <img src="images/1793954048344_286856952051646244_8906706671512364613_e6c2d1ebfac9095c490d1f2cdf4cabb2.jpg" alt="Ảnh cưới 2" loading="lazy" class="w-full h-full object-cover">
             </div>
         </div>
     </section>
     <!-- 3. THÔNG TIN LỄ CƯỚI & BẢN ĐỒ -->
     <section class="py-16 px-4 max-w-4xl mx-auto text-center relative z-10">
-        <h2 class="font-script text-5xl text-rose-800 mb-2">Sự Kiện Cưới</h2>
-        <p class="text-sm text-stone-500 mb-10">Sự hiện diện của bạn là niềm vinh hạnh lớn nhất của gia đình chúng tôi</p>
+        <h2 data-reveal class="font-script text-5xl text-rose-800 mb-2">Sự Kiện Cưới</h2>
+        <p data-reveal data-delay="80" class="text-sm text-stone-500 mb-10">Sự hiện diện của bạn là niềm vinh hạnh lớn nhất của gia đình chúng tôi</p>
         
         <div class="grid md:grid-cols-2 gap-8">
-            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100">
+            <div data-reveal class="event-card bg-white p-8 rounded-xl shadow-sm border border-stone-100">
                 <h3 class="font-serif-title text-2xl font-semibold mb-2">Tiệc Cưới Nhà Gái</h3>
                 <p class="text-rose-700 font-medium mb-4">11:00 - Chủ Nhật, 20/12/2026</p>
                 <p class="text-sm text-stone-600 mb-6">Trung tâm Tiệc cưới Trống Đồng Palace<br>Hà Nội</p>
-                <a href="https://maps.google.com" target="_blank" class="inline-block border border-rose-800 text-rose-800 px-6 py-2 rounded-full text-xs uppercase tracking-wider hover:bg-rose-800 hover:text-white transition">Xem Bản Đồ</a>
+                <a href="https://maps.google.com" target="_blank" class="event-map-link inline-block border border-rose-800 text-rose-800 px-6 py-2 rounded-full text-xs uppercase tracking-wider hover:bg-rose-800 hover:text-white transition">Xem Bản Đồ</a>
             </div>
-            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100">
+            <div data-reveal data-delay="120" class="event-card bg-white p-8 rounded-xl shadow-sm border border-stone-100">
                 <h3 class="font-serif-title text-2xl font-semibold mb-2">Tiệc Cưới Nhà Trai</h3>
                 <p class="text-rose-700 font-medium mb-4">17:30 - Chủ Nhật, 20/12/2026</p>
                 <p class="text-sm text-stone-600 mb-6">Khách sạn Melia Hanoi<br>44B Lý Thường Kiệt, Hoàn Kiếm, Hà Nội</p>
-                <a href="https://maps.google.com" target="_blank" class="inline-block border border-rose-800 text-rose-800 px-6 py-2 rounded-full text-xs uppercase tracking-wider hover:bg-rose-800 hover:text-white transition">Xem Bản Đồ</a>
+                <a href="https://maps.google.com" target="_blank" class="event-map-link inline-block border border-rose-800 text-rose-800 px-6 py-2 rounded-full text-xs uppercase tracking-wider hover:bg-rose-800 hover:text-white transition">Xem Bản Đồ</a>
             </div>
         </div>
     </section>
@@ -325,9 +362,9 @@
     <!-- 5. LỜI CHÚC TỪ KHÁCH MỜI -->
     <section id="loi-chuc" aria-labelledby="wishes-heading" class="py-16 px-4 max-w-4xl mx-auto relative z-10">
         <div class="text-center mb-10">
-            <p class="text-rose-800 text-2xl mb-4" aria-hidden="true">♡</p>
-            <h2 id="wishes-heading" class="font-script text-5xl text-rose-800 mb-3">Lời Chúc Yêu Thương</h2>
-            <p class="text-sm text-stone-500">Cảm ơn những lời chúc ấm áp dành cho chúng mình</p>
+            <p data-reveal class="wishes-heart text-rose-800 text-2xl mb-4" aria-hidden="true">♡</p>
+            <h2 data-reveal data-delay="80" id="wishes-heading" class="font-script text-5xl text-rose-800 mb-3">Lời Chúc Yêu Thương</h2>
+            <p data-reveal data-delay="160" class="text-sm text-stone-500">Cảm ơn những lời chúc ấm áp dành cho chúng mình</p>
             <p id="wishes-count" class="text-xs text-rose-800 mt-3 hidden"></p>
         </div>
         <p id="wishes-status" role="status" aria-live="polite" class="text-center text-sm text-stone-500 py-6">Đang tải những lời chúc yêu thương...</p>
@@ -339,12 +376,56 @@
     </section>
 
     <footer class="py-8 text-center text-xs text-stone-400">
-        <p>Thank you for being part of our special day ❤️</p>
+        <p data-reveal>Thank you for being part of our special day ❤️</p>
     </footer>
     </main>
 
     <!-- JAVASCRIPT XỬ LÝ LOGIC -->
     <script>
+        // Hiệu ứng dùng chung: quan sát từng mục, không chạy theo mỗi lần cuộn.
+        const siteMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const revealCallbacks = new WeakMap();
+        const revealObserver = typeof IntersectionObserver === 'function'
+            ? new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) revealElement(entry.target);
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -24px 0px' })
+            : null;
+
+        function revealElement(element, immediate = false) {
+            if (element.classList.contains('is-revealed')) {
+                if (immediate) element.classList.remove('reveal-ready');
+                return;
+            }
+            revealObserver?.unobserve(element);
+            element.classList.add('is-revealed');
+            const callback = revealCallbacks.get(element);
+            if (callback) { callback(); revealCallbacks.delete(element); }
+            if (immediate || siteMotion.matches) element.classList.remove('reveal-ready');
+            else window.setTimeout(() => element.classList.remove('reveal-ready'), 730 + Number(element.dataset.delay || 0));
+        }
+
+        function observeReveal(element, callback) {
+            if (callback) revealCallbacks.set(element, callback);
+            if (!revealObserver || siteMotion.matches) { revealElement(element, true); return; }
+            element.style.setProperty('--reveal-delay', (Number(element.dataset.delay) || 0) + 'ms');
+            element.classList.add('reveal-ready');
+            revealObserver.observe(element);
+        }
+        document.querySelectorAll('[data-reveal]').forEach(element => observeReveal(element));
+        document.addEventListener('focusin', event => {
+            const element = event.target.closest('[data-reveal]');
+            if (element) revealElement(element, true);
+        });
+        siteMotion.addEventListener('change', () => {
+            if (siteMotion.matches) {
+                document.querySelectorAll('.reveal-ready').forEach(element => revealElement(element, true));
+                document.querySelectorAll('.countdown-number').forEach(element => element.getAnimations().forEach(animation => animation.cancel()));
+            }
+            syncPetals();
+        });
+
         // 1. Tự động lấy tên khách từ URL
         const urlParams = new URLSearchParams(window.location.search);
         const guest = urlParams.get('khach');
@@ -356,15 +437,32 @@
 
         // 2. Bộ đếm ngược thời gian
         const weddingDate = new Date("2026-12-20T11:00:00").getTime();
-        setInterval(() => {
-            const now = new Date().getTime();
-            const distance = weddingDate - now;
-            if (distance < 0) return;
-            document.getElementById("days").innerText = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
-            document.getElementById("hours").innerText = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
-            document.getElementById("minutes").innerText = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-            document.getElementById("seconds").innerText = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
-        }, 1000);
+        function updateCountdown() {
+            const distance = Math.max(0, weddingDate - Date.now());
+            const values = [
+                Math.floor(distance / 86400000),
+                Math.floor(distance % 86400000 / 3600000),
+                Math.floor(distance % 3600000 / 60000),
+                Math.floor(distance % 60000 / 1000)
+            ];
+            const bounds = document.getElementById('countdown').getBoundingClientRect();
+            const animate = !siteMotion.matches && !document.hidden && bounds.height > 0 && bounds.bottom > 0 && bounds.top < innerHeight;
+            ['days', 'hours', 'minutes', 'seconds'].forEach((id, index) => {
+                const element = document.getElementById(id);
+                const value = String(values[index]).padStart(2, '0');
+                if (element.textContent === value) return;
+                element.textContent = value;
+                if (animate && typeof element.animate === 'function') {
+                    element.getAnimations().forEach(animation => animation.cancel());
+                    element.animate([
+                        { opacity: .45, transform: 'translateY(-5px) rotateX(-25deg)' },
+                        { opacity: 1, transform: 'translateY(0) rotateX(0)' }
+                    ], { duration: 300, easing: 'ease-out' });
+                }
+            });
+        }
+        updateCountdown();
+        window.setInterval(updateCountdown, 1000);
 
         // 3. Mở thiệp và thử phát nhạc từ thao tác của khách.
         const music = document.getElementById('bg-music');
@@ -407,6 +505,7 @@
             invitationContent.classList.add('invitation-revealed');
             window.scrollTo(0, 0);
             startMusic();
+            syncPetals();
             loadWishes();
             const openingDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700;
             window.setTimeout(() => {
@@ -437,6 +536,7 @@
             dAngle: Math.random() * 0.02 - 0.01
         }));
 
+        let petalsFrame = null;
         function drawPetals() {
             ctx.clearRect(0, 0, width, height);
             ctx.fillStyle = 'rgba(244, 162, 178, 0.65)';
@@ -458,9 +558,16 @@
                     p.x = Math.random() * width;
                 }
             });
-            requestAnimationFrame(drawPetals);
+            petalsFrame = requestAnimationFrame(drawPetals);
         }
-        drawPetals();
+        function syncPetals() {
+            if (petalsFrame !== null) cancelAnimationFrame(petalsFrame);
+            petalsFrame = null;
+            ctx.clearRect(0, 0, width, height);
+            if (!siteMotion.matches && !document.hidden && !document.documentElement.classList.contains('invitation-closed')) drawPetals();
+        }
+        document.addEventListener('visibilitychange', syncPetals);
+        syncPetals();
 
         // 5. Gửi dữ liệu RSVP về Google Sheets
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFeMeatrttLPLwcde5QoKF-tqkjNO3fxl8whA9QpcgtbpvSfHoiCPcLpzt3bZbiiPa/exec';
@@ -583,12 +690,14 @@
         let visibleWishes = 6;
         let wishesLoading = false;
         let wishesReloadRequested = false;
+        const revealedWishKeys = new Set();
 
         function renderWishes() {
+            Array.from(wishesList.children).forEach(card => revealObserver?.unobserve(card));
             wishesList.replaceChildren();
-            wishes.slice(0, visibleWishes).forEach(wish => {
+            wishes.slice(0, visibleWishes).forEach((wish, index) => {
                 const card = document.createElement('article');
-                card.className = 'bg-white rounded-2xl border border-rose-100 p-6 shadow-sm';
+                card.className = 'wish-card bg-white rounded-2xl border border-rose-100 p-6 shadow-sm';
                 const name = document.createElement('h3');
                 name.className = 'font-serif-title text-xl font-semibold text-rose-800 break-words';
                 name.textContent = wish.name;
@@ -597,6 +706,12 @@
                 message.textContent = wish.message;
                 card.append(name, message);
                 wishesList.append(card);
+                const key = JSON.stringify([wish.id || '', wish.name, wish.message]);
+                if (!revealedWishKeys.has(key)) {
+                    card.dataset.reveal = '';
+                    card.dataset.delay = String(index % 6 * 70);
+                    observeReveal(card, () => revealedWishKeys.add(key));
+                }
             });
             wishesCount.textContent = wishes.length + ' lời chúc gửi tới chúng mình';
             wishesCount.classList.toggle('hidden', wishes.length === 0);
