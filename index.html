@@ -226,6 +226,23 @@
                         <option value="Xin lỗi, mình bận mất rồi">Xin lỗi, mình bận mất rồi</option>
                     </select>
                 </div>
+                <fieldset id="attendance-details" class="m-0 border-0 p-0 space-y-4">
+                    <legend class="sr-only">Thông tin tiệc và số người tham dự</legend>
+                    <div>
+                        <label for="form-party" class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Bạn tham dự tiệc nào? *</label>
+                        <select name="party" id="form-party" required class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700">
+                            <option value="">Chọn tiệc bạn tham dự</option>
+                            <option value="nha-gai">Tiệc nhà gái · 11:00</option>
+                            <option value="nha-trai">Tiệc nhà trai · 17:30</option>
+                            <option value="ca-hai">Cả hai tiệc</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="form-guests" class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Số người tham dự *</label>
+                        <input type="number" name="guests" id="form-guests" min="1" max="50" step="1" value="1" required inputmode="numeric" aria-describedby="guests-help" class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700">
+                        <p id="guests-help" class="mt-2 text-xs text-stone-500">Tính cả bạn và người đi cùng. Nếu chọn cả hai tiệc, số người này áp dụng cho mỗi tiệc.</p>
+                    </div>
+                </fieldset>
                 <div>
                     <label for="form-message" class="block text-xs uppercase tracking-wider text-stone-600 mb-1">Lời chúc gửi tới cô dâu chú rể</label>
                     <textarea name="message" id="form-message" rows="3" maxlength="2000" aria-describedby="message-visibility" class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700" placeholder="Chúc hai bạn trăm năm hạnh phúc..."></textarea>
@@ -391,6 +408,45 @@
         nameInput.addEventListener('invalid', validateGuestName);
         nameInput.addEventListener('input', validateGuestName);
 
+        const attendSelect = document.getElementById('form-attend');
+        const attendanceDetails = document.getElementById('attendance-details');
+        const partySelect = document.getElementById('form-party');
+        const guestsInput = document.getElementById('form-guests');
+        const attendingValue = 'Có, chắc chắn rồi!';
+        const partyLabels = {
+            'nha-gai': 'Tiệc nhà gái',
+            'nha-trai': 'Tiệc nhà trai',
+            'ca-hai': 'Cả hai tiệc'
+        };
+        const invitedParty = Object.hasOwn(partyLabels, urlParams.get('tiec')) ? urlParams.get('tiec') : '';
+        if (invitedParty) partySelect.value = invitedParty;
+
+        function syncAttendanceDetails() {
+            const attending = attendSelect.value === attendingValue;
+            attendanceDetails.hidden = !attending;
+            attendanceDetails.disabled = !attending;
+            if (!attending) {
+                partySelect.setCustomValidity('');
+                guestsInput.setCustomValidity('');
+            }
+        }
+        function validateParty() {
+            partySelect.setCustomValidity(partySelect.value ? '' : 'Bạn chọn tiệc tham dự nhé.');
+        }
+        function validateGuests() {
+            guestsInput.setCustomValidity('');
+            const count = Number(guestsInput.value);
+            if (!guestsInput.value || !Number.isInteger(count) || count < 1 || count > 50) {
+                guestsInput.setCustomValidity('Bạn nhập số người từ 1 đến 50, bằng số nguyên nhé.');
+            }
+        }
+        attendSelect.addEventListener('change', syncAttendanceDetails);
+        partySelect.addEventListener('invalid', validateParty);
+        partySelect.addEventListener('change', validateParty);
+        guestsInput.addEventListener('invalid', validateGuests);
+        guestsInput.addEventListener('input', validateGuests);
+        syncAttendanceDetails();
+
         // 6. Đọc lời chúc công khai từ Google Sheets, mới nhất trước.
         const wishesList = document.getElementById('wishes-list');
         const wishesStatus = document.getElementById('wishes-status');
@@ -479,6 +535,19 @@
             formData.set('message', String(formData.get('message') || '').trim());
             try {
                 if (!formData.get('name')) throw new Error(nameRequiredMessage);
+                if (attendSelect.value === attendingValue) {
+                    const party = partySelect.value;
+                    const count = Number(guestsInput.value);
+                    if (!Object.hasOwn(partyLabels, party)) throw new Error('Bạn chọn tiệc tham dự nhé.');
+                    if (!Number.isInteger(count) || count < 1 || count > 50) {
+                        throw new Error('Bạn nhập số người từ 1 đến 50, bằng số nguyên nhé.');
+                    }
+                    // Ghi đủ thông tin vào cột C của Apps Script hiện tại.
+                    formData.set('attend', attendingValue + ' | ' + partyLabels[party] + ' | ' + count + ' người');
+                } else {
+                    formData.set('party', '');
+                    formData.set('guests', '0');
+                }
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error('Chưa gửi được xác nhận. Bạn thử lại nhé.');
                 const data = await response.json();
@@ -488,6 +557,10 @@
                 statusMsg.classList.add('text-emerald-600');
                 form.reset();
                 if (guest) document.getElementById('form-name').value = guest;
+                if (invitedParty) partySelect.value = invitedParty;
+                partySelect.setCustomValidity('');
+                guestsInput.setCustomValidity('');
+                syncAttendanceDetails();
                 loadWishes();
             } catch (error) {
                 statusMsg.textContent = error instanceof TypeError

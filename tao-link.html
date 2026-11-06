@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo link mời · Minh Hiền &amp; Hồng Duyên</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f8f3eb; color: #493a36; font: 14px/1.7 'Montserrat', sans-serif; }
+        main { max-width: 1040px; margin: 0 auto; padding: 36px 24px 60px; }
+        a { color: #881337; }
+        .back { font-size: 12px; text-decoration: none; }
+        header { margin: 36px 0 30px; }
+        .eyebrow { color: #97745f; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
+        h1 { color: #881337; font: 52px/1.2 'Great Vibes', cursive; margin: 12px 0; }
+        header p { max-width: 560px; color: #7e6c63; }
+        .layout { display: grid; grid-template-columns: 1.25fr 1fr; gap: 28px; align-items: start; }
+        .panel { padding: 28px; background: #fffcf7; border: 1px solid #e9d9cd; border-radius: 18px; }
+        label { display: block; margin: 0 0 7px; font-size: 12px; font-weight: 600; }
+        input, select, button, .button { font: inherit; }
+        input, select { display: block; width: 100%; min-height: 46px; padding: 11px 12px; border: 1px solid #d8c7bb; border-radius: 9px; background: white; color: #493a36; }
+        input:focus-visible, select:focus-visible, button:focus-visible, .button:focus-visible { outline: 3px solid #c48b9a; outline-offset: 3px; }
+        .field { margin-bottom: 20px; }
+        .help { color: #8a7770; font-size: 12px; margin: 7px 0 0; }
+        button, .button { display: inline-flex; align-items: center; justify-content: center; min-height: 45px; padding: 11px 18px; border-radius: 999px; border: 1px solid #881337; cursor: pointer; text-decoration: none; }
+        .primary { background: #881337; color: white; }
+        .secondary { background: transparent; color: #881337; }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+        #link-result { margin-top: 26px; padding-top: 24px; border-top: 1px solid #e9d9cd; }
+        #generated-link { font-size: 12px; }
+        #link-status { color: #7c2841; margin: 12px 0 0; font-size: 12px; }
+        .preview { overflow: hidden; border: 1px solid #d9bfa8; border-radius: 140px 140px 14px 14px; background: #fffcf7; text-align: center; box-shadow: 0 15px 40px #704b3d12; }
+        .preview img { display: block; width: 100%; height: 230px; object-fit: cover; object-position: center 35%; }
+        .preview-details { padding: 24px 18px 30px; }
+        #preview-guest { color: #775b56; overflow-wrap: anywhere; margin: 8px 0 16px; }
+        .names { color: #881337; font: 40px/1.4 'Great Vibes', cursive; margin: 0; }
+        .date { font-size: 12px; letter-spacing: .16em; color: #97745f; }
+        #preview-party { color: #881337; font-size: 12px; margin-bottom: 0; }
+        .preview-caption { margin: 12px 0 0; text-align: center; color: #8a7770; font-size: 11px; }
+        [hidden] { display: none !important; }
+        @media (max-width: 700px) { main { padding: 24px 18px 40px; } header { margin-top: 26px; } h1 { font-size: 44px; } .layout { grid-template-columns: 1fr; } .panel { padding: 22px; } .preview { max-width: 390px; margin: 0 auto; } }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="back" href="./">← Xem thiệp cưới</a>
+        <header>
+            <p class="eyebrow">Dành cho cô dâu &amp; chú rể</p>
+            <h1>Gửi lời mời riêng</h1>
+            <p>Điền tên người nhận, tạo đường dẫn rồi gửi lời mời đến từng người thân, bạn bè.</p>
+        </header>
+        <div class="layout">
+            <section class="panel" aria-label="Tạo đường dẫn mời khách">
+                <form id="link-form">
+                    <div class="field">
+                        <label for="recipient-name">Tên khách mời *</label>
+                        <input id="recipient-name" type="text" required maxlength="80" placeholder="Ví dụ: Hòa và Gia đình" autocomplete="off" aria-describedby="recipient-help">
+                        <p id="recipient-help" class="help">Tên này sẽ xuất hiện ở bìa thiệp và lời mời bên trong.</p>
+                    </div>
+                    <div class="field">
+                        <label for="invite-party">Chọn sẵn tiệc cho khách</label>
+                        <select id="invite-party">
+                            <option value="">Để khách tự chọn</option>
+                            <option value="nha-gai">Tiệc nhà gái · 11:00</option>
+                            <option value="nha-trai">Tiệc nhà trai · 17:30</option>
+                            <option value="ca-hai">Cả hai tiệc</option>
+                        </select>
+                        <p class="help">Khách vẫn có thể đổi lựa chọn khi xác nhận tham dự.</p>
+                    </div>
+                    <button class="primary" type="submit">Tạo link mời</button>
+                </form>
+                <div id="link-result" hidden>
+                    <label for="generated-link">Link mời dành riêng cho khách</label>
+                    <input id="generated-link" type="url" readonly>
+                    <div class="actions">
+                        <button id="copy-link" type="button" class="primary">Sao chép link</button>
+                        <a id="preview-link" class="button secondary" target="_blank" rel="noopener">Mở thử thiệp ↗</a>
+                    </div>
+                </div>
+                <p id="link-status" role="status" aria-live="polite"></p>
+            </section>
+            <aside aria-label="Xem trước lời mời">
+                <div class="preview">
+                    <img src="images/1793954048344_286856952051646244_8906706671512364613_e6c2d1ebfac9095c490d1f2cdf4cabb2.jpg" alt="" width="1200" height="1600">
+                    <div class="preview-details">
+                        <span class="eyebrow">Trân trọng kính mời</span>
+                        <p id="preview-guest">Bạn và Gia đình</p>
+                        <p class="names">Minh Hiền &amp; Hồng Duyên</p>
+                        <p class="date">20 . 12 . 2026</p>
+                        <p id="preview-party" hidden></p>
+                    </div>
+                </div>
+                <p class="preview-caption">Xem trước tên khách trên lời mời</p>
+            </aside>
+        </div>
+    </main>
+    <script>
+        const linkForm = document.getElementById('link-form');
+        const recipientInput = document.getElementById('recipient-name');
+        const inviteParty = document.getElementById('invite-party');
+        const linkResult = document.getElementById('link-result');
+        const generatedLink = document.getElementById('generated-link');
+        const previewLink = document.getElementById('preview-link');
+        const linkStatus = document.getElementById('link-status');
+        const previewGuest = document.getElementById('preview-guest');
+        const previewParty = document.getElementById('preview-party');
+        const partyNames = { 'nha-gai': 'Tiệc nhà gái · 11:00', 'nha-trai': 'Tiệc nhà trai · 17:30', 'ca-hai': 'Cả hai tiệc' };
+
+        function validateRecipient() {
+            recipientInput.setCustomValidity(recipientInput.value.trim() ? '' : 'Bạn điền tên khách mời nhé.');
+        }
+        function updatePreview() {
+            previewGuest.textContent = recipientInput.value.trim() || 'Bạn và Gia đình';
+            previewParty.textContent = partyNames[inviteParty.value] || '';
+            previewParty.hidden = !inviteParty.value;
+            linkResult.hidden = true;
+            generatedLink.value = '';
+            previewLink.removeAttribute('href');
+            linkStatus.textContent = '';
+        }
+        recipientInput.addEventListener('invalid', validateRecipient);
+        recipientInput.addEventListener('input', () => { validateRecipient(); updatePreview(); });
+        inviteParty.addEventListener('change', updatePreview);
+        generatedLink.addEventListener('click', () => generatedLink.select());
+
+        linkForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const name = recipientInput.value.trim();
+            if (!name) { validateRecipient(); recipientInput.reportValidity(); return; }
+            const url = new URL('https://phamduyen6611-ops.github.io/thiep-cuoi/');
+            url.searchParams.set('khach', name);
+            if (Object.hasOwn(partyNames, inviteParty.value)) url.searchParams.set('tiec', inviteParty.value);
+            generatedLink.value = url.href;
+            previewLink.href = url.href;
+            linkResult.hidden = false;
+            linkStatus.textContent = 'Link mời đã sẵn sàng. Bạn sao chép và gửi cho khách nhé.';
+        });
+        document.getElementById('copy-link').addEventListener('click', async () => {
+            if (!generatedLink.value) return;
+            try {
+                await navigator.clipboard.writeText(generatedLink.value);
+                linkStatus.textContent = 'Đã sao chép link mời.';
+            } catch (error) {
+                generatedLink.focus();
+                generatedLink.select();
+                linkStatus.textContent = 'Bạn nhấn giữ hoặc nhấn Ctrl+C để sao chép đường dẫn đã chọn nhé.';
+            }
+        });
+    </script>
+</body>
+</html>
