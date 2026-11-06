@@ -262,6 +262,14 @@
         const form = document.getElementById('rsvp-form');
         const submitBtn = document.getElementById('submit-btn');
         const statusMsg = document.getElementById('form-status');
+        const nameInput = document.getElementById('form-name');
+        const nameRequiredMessage = 'Bạn điền tên trước khi gửi nhé.';
+
+        function validateGuestName() {
+            nameInput.setCustomValidity(nameInput.value.trim() ? '' : nameRequiredMessage);
+        }
+        nameInput.addEventListener('invalid', validateGuestName);
+        nameInput.addEventListener('input', validateGuestName);
 
         // 6. Đọc lời chúc công khai từ Google Sheets, mới nhất trước.
         const wishesList = document.getElementById('wishes-list');
@@ -350,7 +358,7 @@
             formData.set('name', String(formData.get('name') || '').trim());
             formData.set('message', String(formData.get('message') || '').trim());
             try {
-                if (!formData.get('name')) throw new Error('Bạn điền tên trước khi gửi nhé.');
+                if (!formData.get('name')) throw new Error(nameRequiredMessage);
                 const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
                 if (!response.ok) throw new Error('Chưa gửi được xác nhận. Bạn thử lại nhé.');
                 const data = await response.json();
