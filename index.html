@@ -73,6 +73,60 @@
         .is-opening .cover-card { transform: perspective(1200px) rotateY(-12deg) translateY(-20px) scale(.96); opacity: 0; }
         .invitation-revealed { animation: invitation-reveal 700ms ease both; }
         @keyframes invitation-reveal { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Chuyển động nhẹ cho phần xác nhận tham dự. */
+        .rsvp-card {
+            position: relative; border: 1px solid #eadbd5;
+            background: linear-gradient(145deg, #fff, #fffcfa);
+            transition: opacity 650ms ease, transform 650ms ease, box-shadow 300ms ease;
+        }
+        .rsvp-card:focus-within { box-shadow: 0 16px 48px #88133712; }
+        .rsvp-emblem {
+            width: 48px; height: 48px; margin: 0 auto 16px;
+            display: grid; place-items: center; border-radius: 50%;
+            background: #fff1f2; color: #9f3450;
+            transition: transform 350ms ease, background-color 350ms ease;
+        }
+        .rsvp-emblem svg { width: 25px; height: 25px; }
+        .rsvp-card:focus-within .rsvp-emblem { transform: rotate(-7deg) scale(1.06); background: #ffe4e6; }
+        .rsvp-motion-ready:not(.is-visible) { opacity: 0; transform: translateY(24px); }
+        .rsvp-motion-ready:not(.is-visible) .rsvp-step { opacity: 0; }
+        .rsvp-motion-ready.is-visible .rsvp-step {
+            animation: rsvp-field-in 440ms ease both;
+            animation-delay: calc(var(--rsvp-step, 0) * 70ms);
+        }
+        .rsvp-card:focus-within .rsvp-step { opacity: 1; transform: none; animation: none; }
+        .rsvp-field label { transition: color 200ms ease, transform 200ms ease; }
+        .rsvp-field:focus-within > label { color: #9f1239; transform: translateX(3px); }
+        #rsvp-form input, #rsvp-form select, #rsvp-form textarea {
+            transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+        }
+        #rsvp-form input:focus, #rsvp-form select:focus, #rsvp-form textarea:focus {
+            background-color: #fffdfb; box-shadow: 0 0 0 4px #ffe4e680;
+        }
+        .rsvp-submit {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+        }
+        .rsvp-submit:active:not(:disabled) { transform: translateY(1px); }
+        .rsvp-submit:disabled { cursor: wait; opacity: .8; }
+        .rsvp-submit-icon { width: 18px; height: 18px; flex-shrink: 0; }
+        .rsvp-submit-spinner {
+            display: none; width: 17px; height: 17px; border-radius: 50%;
+            border: 2px solid #ffffff55; border-top-color: white;
+            animation: spin-slow 850ms linear infinite;
+        }
+        .rsvp-submit[aria-busy="true"] .rsvp-submit-spinner { display: inline-block; }
+        .rsvp-submit[aria-busy="true"] .rsvp-submit-icon { display: none; }
+        #form-status:not(.hidden) { animation: rsvp-status-in 300ms ease both; }
+        #form-status.is-success::before { content: '✓'; display: inline-block; margin-right: 7px; }
+        .rsvp-card.is-sent .rsvp-emblem { animation: rsvp-thanks 550ms ease; }
+        @keyframes rsvp-field-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes rsvp-status-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes rsvp-thanks { 50% { transform: scale(1.15) rotate(-8deg); } }
+        @media (hover: hover) {
+            .rsvp-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px #88133726; }
+        }
         @media (max-width: 600px) {
             .cover-stage { max-width: 390px; }
             .cover-card {
@@ -90,6 +144,13 @@
         @media (prefers-reduced-motion: reduce) {
             .invitation-cover, .cover-card { transition: none; }
             .invitation-revealed { animation: none; }
+            .rsvp-card, .rsvp-emblem, .rsvp-field label, #rsvp-form input,
+            #rsvp-form select, #rsvp-form textarea, .rsvp-submit { transition: none; }
+            .rsvp-motion-ready:not(.is-visible), .rsvp-motion-ready:not(.is-visible) .rsvp-step { opacity: 1; transform: none; }
+            .rsvp-motion-ready.is-visible .rsvp-step, #form-status:not(.hidden),
+            .rsvp-card.is-sent .rsvp-emblem, .rsvp-submit-spinner { animation: none; }
+            .rsvp-card:focus-within .rsvp-emblem, .rsvp-field:focus-within > label,
+            .rsvp-submit:hover:not(:disabled), .rsvp-submit:active:not(:disabled) { transform: none; }
         }
     </style>
 </head>
@@ -209,8 +270,11 @@
     </section>
 
     <!-- 4. FORM XÁC NHẬN THAM DỰ (RSVP) -->
-    <section class="py-16 px-4 bg-stone-100 relative z-10">
-        <div class="max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-sm">
+    <section id="xac-nhan" class="py-16 px-4 bg-stone-100 relative z-10">
+        <div id="rsvp-card" class="rsvp-card max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-sm">
+            <div class="rsvp-emblem" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="m3 7 9 7 9-7M9 3h6"/></svg>
+            </div>
             <h2 class="font-serif-title text-3xl text-center font-semibold mb-2">Xác Nhận Tham Dự</h2>
             <p class="text-center text-xs text-stone-500 mb-6">Hãy gửi lời chúc và xác nhận để chúng mình đón tiếp chu đáo nhất nhé!</p>
             
@@ -248,7 +312,11 @@
                     <textarea name="message" id="form-message" rows="3" maxlength="2000" aria-describedby="message-visibility" class="w-full border border-stone-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-700" placeholder="Chúc hai bạn trăm năm hạnh phúc..."></textarea>
                     <p id="message-visibility" class="mt-2 text-xs text-stone-500">Tên và lời chúc của bạn sẽ được hiển thị trên thiệp.</p>
                 </div>
-                <button type="submit" id="submit-btn" class="w-full bg-rose-800 text-white py-3 rounded-lg text-sm uppercase tracking-wider font-medium hover:bg-rose-900 transition">Gửi Xác Nhận</button>
+                <button type="submit" id="submit-btn" aria-busy="false" class="rsvp-submit w-full bg-rose-800 text-white py-3 rounded-lg text-sm uppercase tracking-wider font-medium hover:bg-rose-900">
+                    <svg class="rsvp-submit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m21 3-7 18-4-7-7-4 18-7ZM10 14 21 3"/></svg>
+                    <span id="submit-label">Gửi Xác Nhận</span>
+                    <span class="rsvp-submit-spinner" aria-hidden="true"></span>
+                </button>
                 <p id="form-status" role="status" aria-live="polite" class="text-center text-sm text-emerald-600 hidden mt-2"></p>
             </form>
         </div>
@@ -398,7 +466,36 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFeMeatrttLPLwcde5QoKF-tqkjNO3fxl8whA9QpcgtbpvSfHoiCPcLpzt3bZbiiPa/exec';
         const form = document.getElementById('rsvp-form');
         const submitBtn = document.getElementById('submit-btn');
+        const submitLabel = document.getElementById('submit-label');
         const statusMsg = document.getElementById('form-status');
+        const rsvpCard = document.getElementById('rsvp-card');
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        Array.from(form.children).filter(child => child !== statusMsg).forEach((child, index) => {
+            child.classList.add('rsvp-step');
+            child.style.setProperty('--rsvp-step', index);
+        });
+        form.querySelectorAll('input, select, textarea').forEach(input => input.parentElement.classList.add('rsvp-field'));
+        let rsvpRevealed = false;
+        function revealRsvp() {
+            if (rsvpRevealed) return;
+            rsvpRevealed = true;
+            rsvpCard.classList.add('is-visible');
+            window.setTimeout(() => rsvpCard.classList.remove('rsvp-motion-ready'), 900);
+        }
+        if ('IntersectionObserver' in window && !reducedMotion.matches) {
+            const rsvpObserver = new IntersectionObserver(entries => {
+                if (entries.some(entry => entry.isIntersecting)) {
+                    revealRsvp();
+                    rsvpObserver.disconnect();
+                }
+            }, { threshold: 0.1 });
+            rsvpCard.classList.add('rsvp-motion-ready');
+            rsvpObserver.observe(rsvpCard);
+        }
+        rsvpCard.addEventListener('focusin', () => {
+            revealRsvp();
+            rsvpCard.classList.remove('rsvp-motion-ready');
+        });
         const nameInput = document.getElementById('form-name');
         const nameRequiredMessage = 'Bạn điền tên trước khi gửi nhé.';
 
@@ -421,14 +518,43 @@
         const invitedParty = Object.hasOwn(partyLabels, urlParams.get('tiec')) ? urlParams.get('tiec') : '';
         if (invitedParty) partySelect.value = invitedParty;
 
-        function syncAttendanceDetails() {
+        let attendanceAnimation = null;
+        function syncAttendanceDetails(animate = false) {
             const attending = attendSelect.value === attendingValue;
-            attendanceDetails.hidden = !attending;
+            const wasHidden = attendanceDetails.hidden;
+            const startHeight = attendanceDetails.getBoundingClientRect().height;
+            const startMargin = getComputedStyle(attendanceDetails).marginTop;
+            const startOpacity = wasHidden ? 0 : Number(getComputedStyle(attendanceDetails).opacity);
+            if (attendanceAnimation) {
+                attendanceAnimation.cancel();
+                attendanceAnimation = null;
+            }
+            attendanceDetails.style.overflow = '';
             attendanceDetails.disabled = !attending;
+            attendanceDetails.inert = !attending;
             if (!attending) {
                 partySelect.setCustomValidity('');
                 guestsInput.setCustomValidity('');
             }
+            if (!animate || reducedMotion.matches || typeof attendanceDetails.animate !== 'function' || (wasHidden && !attending)) {
+                attendanceDetails.hidden = !attending;
+                return;
+            }
+            attendanceDetails.hidden = false;
+            const endHeight = attending ? attendanceDetails.getBoundingClientRect().height : 0;
+            const endMargin = attending ? getComputedStyle(attendanceDetails).marginTop : '0px';
+            attendanceDetails.style.overflow = 'hidden';
+            const animation = attendanceDetails.animate([
+                { height: startHeight + 'px', opacity: startOpacity, marginTop: startMargin },
+                { height: endHeight + 'px', opacity: attending ? 1 : 0, marginTop: endMargin }
+            ], { duration: 280, easing: 'ease-out' });
+            attendanceAnimation = animation;
+            animation.onfinish = () => {
+                if (attendanceAnimation !== animation) return;
+                attendanceDetails.hidden = !attending;
+                attendanceDetails.style.overflow = '';
+                attendanceAnimation = null;
+            };
         }
         function validateParty() {
             partySelect.setCustomValidity(partySelect.value ? '' : 'Bạn chọn tiệc tham dự nhé.');
@@ -440,7 +566,7 @@
                 guestsInput.setCustomValidity('Bạn nhập số người từ 1 đến 50, bằng số nguyên nhé.');
             }
         }
-        attendSelect.addEventListener('change', syncAttendanceDetails);
+        attendSelect.addEventListener('change', () => syncAttendanceDetails(true));
         partySelect.addEventListener('invalid', validateParty);
         partySelect.addEventListener('change', validateParty);
         guestsInput.addEventListener('invalid', validateGuests);
@@ -528,7 +654,10 @@
             e.preventDefault();
             if (submitBtn.disabled) return;
             submitBtn.disabled = true;
-            submitBtn.innerText = 'Đang gửi...';
+            submitBtn.setAttribute('aria-busy', 'true');
+            submitLabel.textContent = 'Đang gửi...';
+            rsvpCard.classList.remove('is-sent');
+            statusMsg.classList.remove('is-success');
             statusMsg.classList.add('hidden');
             const formData = new FormData(form);
             formData.set('name', String(formData.get('name') || '').trim());
@@ -555,6 +684,8 @@
                 statusMsg.textContent = 'Cảm ơn bạn! Xác nhận của bạn đã được lưu.';
                 statusMsg.classList.remove('text-rose-700');
                 statusMsg.classList.add('text-emerald-600');
+                statusMsg.classList.add('is-success');
+                rsvpCard.classList.add('is-sent');
                 form.reset();
                 if (guest) document.getElementById('form-name').value = guest;
                 if (invitedParty) partySelect.value = invitedParty;
@@ -571,7 +702,8 @@
             } finally {
                 statusMsg.classList.remove('hidden');
                 submitBtn.disabled = false;
-                submitBtn.innerText = 'Gửi Xác Nhận';
+                submitBtn.setAttribute('aria-busy', 'false');
+                submitLabel.textContent = 'Gửi Xác Nhận';
             }
         });
     </script>
