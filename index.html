@@ -156,6 +156,34 @@
         }
         .reveal-ready:not(.is-revealed) { opacity: 0; transform: translateY(22px); }
         .reveal-ready.is-revealed { opacity: 1; transform: translateY(0); }
+        .hero-slideshow { overflow: hidden; isolation: isolate; background: #493a36; }
+        .hero-slides, .hero-overlay { position: absolute; inset: 0; pointer-events: none; }
+        .hero-slides { z-index: -2; overflow: hidden; }
+        .hero-slide {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; opacity: 0; transition: opacity 1400ms ease;
+        }
+        .hero-slide.is-active { opacity: 1; }
+        .hero-overlay { z-index: -1; background: linear-gradient(180deg, #00000038, #00000066 45%, #000000a8); }
+        .hero-controls {
+            position: absolute; z-index: 20; left: 50%; bottom: max(24px, env(safe-area-inset-bottom));
+            transform: translateX(-50%); display: flex; align-items: center; gap: 2px;
+            padding: 3px 8px; border: 1px solid #ffffff40; border-radius: 999px;
+            background: #00000033; backdrop-filter: blur(8px);
+        }
+        .hero-dot, .hero-toggle {
+            display: grid; place-items: center; width: 38px; height: 40px;
+            padding: 0; border: 0; border-radius: 50%; color: white; background: transparent; cursor: pointer;
+        }
+        .hero-dot::after { content: ''; width: 7px; height: 7px; border-radius: 999px; background: #ffffff88; transition: width 250ms ease, background-color 250ms ease; }
+        .hero-dot[aria-pressed="true"]::after { width: 23px; background: white; }
+        .hero-dot:disabled { opacity: .35; cursor: default; }
+        .hero-dot:focus-visible, .hero-toggle:focus-visible { outline: 2px solid white; outline-offset: -2px; }
+        .hero-toggle { margin-left: 4px; border-left: 1px solid #ffffff30; border-radius: 0 999px 999px 0; }
+        .hero-toggle svg { width: 17px; height: 17px; }
+        .hero-play-icon { display: none; }
+        .hero-toggle[aria-pressed="true"] .hero-pause-icon { display: none; }
+        .hero-toggle[aria-pressed="true"] .hero-play-icon { display: block; }
         @media (max-width: 600px) {
             .cover-stage { max-width: 390px; }
             .cover-card {
@@ -187,6 +215,8 @@
             .event-card:hover, .wish-card:hover, .event-map-link:hover::after { transform: none; }
             .gallery-item::after { display: none; }
             .wishes-heart.is-revealed { animation: none; }
+            .hero-slide, .hero-dot::after { transition: none; }
+            .hero-toggle { display: none; }
             html { scroll-behavior: auto !important; }
         }
     </style>
@@ -234,8 +264,14 @@
     </button>
 
     <!-- 1. HERO SECTION (TRANG BÌA) -->
-    <section class="relative h-screen flex items-center justify-center text-center bg-cover bg-center" 
-             style="background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80');">
+    <section id="hero" class="hero-slideshow relative h-screen flex items-center justify-center text-center" aria-label="Thiệp cưới và trình chiếu ảnh">
+        <div class="hero-slides" aria-hidden="true">
+            <img class="hero-slide is-active" src="images/1793954048344_286856952051646244_8906706671512364613_e6c2d1ebfac9095c490d1f2cdf4cabb2.jpg" alt="" width="1200" height="1600" decoding="async" style="object-position: 54% 30%">
+            <img class="hero-slide" data-src="images/1793954018285_286856952051646244_8906706671512364613_58283f127341df1df8ff37ba0d2b2c4c.jpg" alt="" decoding="async" style="object-position: 55% 48%">
+            <img class="hero-slide" data-src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&amp;fit=crop&amp;w=1600&amp;q=80" alt="" decoding="async">
+            <img class="hero-slide" data-src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&amp;fit=crop&amp;w=1600&amp;q=80" alt="" decoding="async">
+        </div>
+        <div class="hero-overlay" aria-hidden="true"></div>
         <div class="text-white px-4 max-w-2xl z-10">
             <p data-reveal class="uppercase tracking-[0.3em] text-sm mb-4 opacity-90">Save The Date</p>
             <h1 data-reveal data-delay="100" class="font-script text-6xl md:text-8xl mb-6">Minh Hiền &amp; Hồng Duyên</h1>
@@ -246,6 +282,16 @@
             </div>
 
             <p data-reveal data-delay="300" class="text-xl md:text-2xl font-serif-title tracking-widest">20 . 12 . 2026</p>
+        </div>
+        <div class="hero-controls" role="group" aria-label="Điều khiển trình chiếu ảnh bìa">
+            <button class="hero-dot" type="button" data-slide="0" aria-label="Xem ảnh 1 trong 4" aria-pressed="true"></button>
+            <button class="hero-dot" type="button" data-slide="1" aria-label="Xem ảnh 2 trong 4" aria-pressed="false" disabled></button>
+            <button class="hero-dot" type="button" data-slide="2" aria-label="Xem ảnh 3 trong 4" aria-pressed="false" disabled></button>
+            <button class="hero-dot" type="button" data-slide="3" aria-label="Xem ảnh 4 trong 4" aria-pressed="false" disabled></button>
+            <button id="hero-toggle" class="hero-toggle" type="button" aria-label="Tạm dừng trình chiếu" aria-pressed="false">
+                <svg class="hero-pause-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>
+                <svg class="hero-play-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg>
+            </button>
         </div>
     </section>
 
@@ -424,6 +470,7 @@
                 document.querySelectorAll('.countdown-number').forEach(element => element.getAnimations().forEach(animation => animation.cancel()));
             }
             syncPetals();
+            syncHeroSlideshow();
         });
 
         // 1. Tự động lấy tên khách từ URL
@@ -474,6 +521,95 @@
         let invitationOpened = false;
         invitationContent.inert = document.documentElement.classList.contains('invitation-closed');
 
+        // Trình chiếu 4 ảnh nền HERO; chỉ chạy khi khách đang xem phần này.
+        const heroSection = document.getElementById('hero');
+        const heroSlides = Array.from(heroSection.querySelectorAll('.hero-slide'));
+        const heroDots = Array.from(heroSection.querySelectorAll('.hero-dot'));
+        const heroToggle = document.getElementById('hero-toggle');
+        const heroReady = new Set();
+        const heroZooms = new Map();
+        let heroIndex = 0;
+        let heroTimer = null;
+        let heroPrepared = false;
+        let heroUserPaused = false;
+        let heroVisible = typeof IntersectionObserver !== 'function';
+
+        function prepareHeroSlides() {
+            if (heroPrepared) return;
+            heroPrepared = true;
+            heroSlides.forEach((slide, index) => {
+                const markReady = () => {
+                    heroReady.add(index);
+                    heroDots[index].disabled = false;
+                };
+                slide.addEventListener('load', () => { markReady(); syncHeroSlideshow(); });
+                slide.addEventListener('error', () => { heroReady.delete(index); heroDots[index].disabled = true; });
+                if (slide.dataset.src) slide.src = slide.dataset.src;
+                if (slide.complete && slide.naturalWidth > 0) markReady();
+            });
+        }
+
+        function heroCanPlay() {
+            return invitationOpened && heroVisible && !document.hidden && !heroUserPaused && !siteMotion.matches;
+        }
+
+        function showHeroSlide(index) {
+            if (index === heroIndex || !heroReady.has(index)) return;
+            heroZooms.get(heroIndex)?.pause();
+            heroSlides[heroIndex].classList.remove('is-active');
+            heroIndex = index;
+            heroSlides[heroIndex].classList.add('is-active');
+            heroDots.forEach((dot, dotIndex) => dot.setAttribute('aria-pressed', String(dotIndex === heroIndex)));
+            heroZooms.get(heroIndex)?.cancel();
+            heroZooms.delete(heroIndex);
+        }
+
+        function syncHeroSlideshow() {
+            if (invitationOpened) prepareHeroSlides();
+            heroToggle.setAttribute('aria-pressed', String(heroUserPaused));
+            heroToggle.setAttribute('aria-label', heroUserPaused ? 'Tiếp tục trình chiếu' : 'Tạm dừng trình chiếu');
+            if (!heroCanPlay()) {
+                if (heroTimer !== null) clearInterval(heroTimer);
+                heroTimer = null;
+                if (siteMotion.matches) {
+                    heroZooms.forEach(animation => animation.cancel());
+                    heroZooms.clear();
+                } else heroZooms.get(heroIndex)?.pause();
+                return;
+            }
+            if (heroReady.has(heroIndex)) {
+                if (!heroZooms.has(heroIndex) && typeof heroSlides[heroIndex].animate === 'function') {
+                    heroZooms.set(heroIndex, heroSlides[heroIndex].animate([
+                        { transform: 'scale(1)' }, { transform: 'scale(1.07)' }
+                    ], { duration: 7500, easing: 'linear', fill: 'forwards' }));
+                } else if (heroZooms.get(heroIndex)?.playState === 'paused') heroZooms.get(heroIndex).play();
+            }
+            if (heroTimer === null) {
+                heroTimer = window.setInterval(() => {
+                    for (let offset = 1; offset < heroSlides.length; offset++) {
+                        const next = (heroIndex + offset) % heroSlides.length;
+                        if (heroReady.has(next)) { showHeroSlide(next); break; }
+                    }
+                    syncHeroSlideshow();
+                }, 5500);
+            }
+        }
+
+        heroDots.forEach((dot, index) => dot.addEventListener('click', () => {
+            showHeroSlide(index);
+            if (heroTimer !== null) clearInterval(heroTimer);
+            heroTimer = null;
+            syncHeroSlideshow();
+        }));
+        heroToggle.addEventListener('click', () => { heroUserPaused = !heroUserPaused; syncHeroSlideshow(); });
+        if (typeof IntersectionObserver === 'function') {
+            const heroObserver = new IntersectionObserver(entries => {
+                heroVisible = entries.some(entry => entry.isIntersecting);
+                syncHeroSlideshow();
+            }, { threshold: 0.2 });
+            heroObserver.observe(heroSection);
+        }
+
         function updateMusicButton() {
             const playing = !music.paused;
             musicIcon.innerText = playing ? '🎵' : '🔇';
@@ -506,6 +642,7 @@
             window.scrollTo(0, 0);
             startMusic();
             syncPetals();
+            syncHeroSlideshow();
             loadWishes();
             const openingDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700;
             window.setTimeout(() => {
@@ -566,7 +703,7 @@
             ctx.clearRect(0, 0, width, height);
             if (!siteMotion.matches && !document.hidden && !document.documentElement.classList.contains('invitation-closed')) drawPetals();
         }
-        document.addEventListener('visibilitychange', syncPetals);
+        document.addEventListener('visibilitychange', () => { syncPetals(); syncHeroSlideshow(); });
         syncPetals();
 
         // 5. Gửi dữ liệu RSVP về Google Sheets
